@@ -1,0 +1,238 @@
+.slot-machine-container {
+  background-color: #E5F4F9;
+  display: flex;
+  flex-direction: row;
+  justify-content: space-between;
+  padding: 20px;
+  min-height: 80vh;
+}
+
+.slot-main-content {
+  width: 65%;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 30px;
+}
+
+.slot-machine {
+  background: linear-gradient(135deg, #2c3e50, #4a6491);
+  border-radius: 20px;
+  padding: 30px;
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.3);
+  border: 8px solid #f1c40f;
+  position: relative;
+}
+
+.reels-container {
+  display: flex;
+  justify-content: center;
+  gap: 15px;
+  margin-bottom: 30px;
+  position: relative;
+}
+
+.reel {
+  width: 100px;
+  height: 100px;
+  background: linear-gradient(145deg, #ecf0f1, #bdc3c7);
+  border-radius: 15px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 3rem;
+  border: 4px solid #34495e;
+  box-shadow: inset 0 0 10px rgba(0, 0, 0, 0.3);
+  position: relative;
+  overflow: hidden;
+}
+
+.reel-symbol {
+  animation: none;
+}
+
+.reel.spinning .reel-symbol {
+  animation: spin 0.1s infinite linear;
+}
+
+@keyframes spin {
+  0% { transform: translateY(-100px); }
+  100% { transform: translateY(100px); }
+}
+
+.payline {
+  position: absolute;
+  top: 50%;
+  left: 0;
+  right: 0;
+  height: 4px;
+  background: #e74c3c;
+  transform: translateY(-50%);
+  box-shadow: 0 0 10px #e74c3c;
+  z-index: 2;
+}
+
+.slot-controls {
+  text-align: center;
+}
+
+.betting-panel {
+  margin-bottom: 20px;
+}
+
+.betting-panel h3 {
+  color: white;
+  margin-bottom: 15px;
+  font-size: 1.5rem;
+}
+
+.betting-panel input {
+  padding: 12px;
+  font-size: 1.1rem;
+  border: none;
+  border-radius: 8px;
+  margin: 10px 0;
+  width: 200px;
+  text-align: center;
+}
+
+.spin-button {
+  background: linear-gradient(145deg, #e74c3c, #c0392b);
+  color: white;
+  border: none;
+  padding: 15px 30px;
+  font-size: 1.3rem;
+  font-weight: bold;
+  border-radius: 10px;
+  cursor: pointer;
+  margin-top: 15px;
+  width: 220px;
+  transition: all 0.3s ease;
+}
+
+.spin-button:hover:not(:disabled) {
+  transform: scale(1.05);
+  background: linear-gradient(145deg, #ff6b6b, #e74c3c);
+}
+
+.spin-button:disabled {
+  background: #7f8c8d;
+  cursor: not-allowed;
+  transform: none;
+}
+
+.balance-info {
+  color: white;
+  font-size: 1.3rem;
+  margin: 15px 0;
+}
+
+.win-display {
+  color: #2ecc71;
+  font-size: 1.5rem;
+  font-weight: bold;
+  animation: pulse 0.5s ease-in-out;
+}
+
+@keyframes pulse {
+  0% { transform: scale(1); }
+  50% { transform: scale(1.1); }
+  100% { transform: scale(1); }
+}
+
+.result-message {
+  color: #f1c40f;
+  font-size: 1.2rem;
+  font-weight: bold;
+  margin-top: 15px;
+  padding: 10px;
+  background: rgba(0, 0, 0, 0.3);
+  border-radius: 8px;
+}
+
+.probabilities-panel {
+  background: white;
+  padding: 20px;
+  border-radius: 15px;
+  box-shadow: 0 5px 15px rgba(0, 0, 0, 0.1);
+  width: 100%;
+  max-width: 400px;
+}
+
+.probabilities-panel h4 {
+  color: #2c3e50;
+  margin-bottom: 15px;
+  text-align: center;
+}
+
+.probability-item {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 8px 0;
+  border-bottom: 1px solid #ecf0f1;
+}
+
+.probability-item:last-child {
+  border-bottom: none;
+}
+
+.symbol {
+  font-size: 1.2rem;
+  width: 60px;
+}
+
+.multiplier {
+  color: #e74c3c;
+  font-weight: bold;
+}
+
+.probability {
+  color: #7f8c8d;
+  font-size: 0.9rem;
+}
+
+.slot-chart-container {
+  width: 33%;
+  background: white;
+  padding: 20px;
+  border-radius: 15px;
+  box-shadow: 0 5px 15px rgba(0, 0, 0, 0.1);
+}
+
+.educational-note {
+  margin-top: 20px;
+  padding: 15px;
+  background: #f8f9fa;
+  border-radius: 10px;
+  border-left: 4px solid #e74c3c;
+}
+
+.educational-note h4 {
+  color: #2c3e50;
+  margin-bottom: 10px;
+}
+
+.educational-note p {
+  color: #7f8c8d;
+  font-size: 0.9rem;
+  line-height: 1.4;
+  margin-bottom: 8px;
+}
+
+@media (max-width: 768px) {
+  .slot-machine-container {
+    flex-direction: column;
+  }
+  
+  .slot-main-content,
+  .slot-chart-container {
+    width: 100%;
+  }
+  
+  .reel {
+    width: 80px;
+    height: 80px;
+    font-size: 2rem;
+  }
+}
