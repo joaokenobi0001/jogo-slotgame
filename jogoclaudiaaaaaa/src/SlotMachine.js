@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useRef } from 'react';
 import './SlotMachine.css';
 import {
   Chart as ChartJS,
@@ -24,27 +24,30 @@ ChartJS.register(
 
 const SlotMachine = () => {
   const [balance, setBalance] = useState(1000);
-  const [betAmount, setBetAmount] = useState(0);
+  const [betAmount, setBetAmount] = useState(10);
   const [isSpinning, setIsSpinning] = useState(false);
-  const [reels, setReels] = useState(['CEREJA', 'CEREJA', 'CEREJA']);
+  const [reels, setReels] = useState(['🍒', '🍒', '🍒']);
   const [result, setResult] = useState('');
   const [balanceHistory, setBalanceHistory] = useState([1000]);
-  const [betCount, setBetCount] = useState(1);
+  const [betCount, setBetCount] = useState(0);
   const [winAmount, setWinAmount] = useState(0);
   const [jackpotProbabilityHistory, setJackpotProbabilityHistory] = useState([0]);
 
+  const spinIntervalRef = useRef(null);
+
   const symbols = [
-    { symbol: 'CEREJA', multiplier: 2, probability: 0.4 },
-    { symbol: 'LIMAO', multiplier: 3, probability: 0.3 },
-    { symbol: 'LARANJA', multiplier: 5, probability: 0.15 },
-    { symbol: 'SINO', multiplier: 10, probability: 0.1 },
-    { symbol: 'ESTRELA', multiplier: 20, probability: 0.04 },
-    { symbol: 'DIAMANTE', multiplier: 50, probability: 0.01 }
+    { symbol: '🍒', name: 'CEREJA', multiplier: 2, probability: 0.4 },
+    { symbol: '🍋', name: 'LIMAO', multiplier: 3, probability: 0.3 },
+    { symbol: '🍊', name: 'LARANJA', multiplier: 5, probability: 0.15 },
+    { symbol: '🔔', name: 'SINO', multiplier: 10, probability: 0.1 },
+    { symbol: '⭐', name: 'ESTRELA', multiplier: 20, probability: 0.04 },
+    { symbol: '💎', name: 'DIAMANTE', multiplier: 50, probability: 0.01 }
   ];
 
   const calculateJackpotProbability = (spins) => {
-    const singleJackpotProb = 0.09544; // Probabilidade de jackpot em uma jogada (calculada previamente)
-    return (1 - Math.pow(1 - singleJackpotProb, spins)) * 100;
+    const singleJackpotProb = 0.01; // Probabilidade do diamante (jackpot)
+    const threeJackpotsProb = singleJackpotProb * singleJackpotProb * singleJackpotProb;
+    return (1 - Math.pow(1 - threeJackpotsProb, Math.max(1, spins))) * 100;
   };
 
   const getRandomSymbol = () => {
@@ -61,13 +64,20 @@ const SlotMachine = () => {
   };
 
   const calculateWinnings = (reelSymbols) => {
-    const [a, b, c] = reelSymbols;
+    const symbolNames = reelSymbols.map(symbol => {
+      const found = symbols.find(s => s.symbol === symbol);
+      return found ? found.name : symbol;
+    });
     
+    const [a, b, c] = symbolNames;
+    
+    // Três iguais
     if (a === b && b === c) {
-      const symbol = symbols.find(s => s.symbol === a);
+      const symbol = symbols.find(s => s.name === a);
       return betAmount * symbol.multiplier;
     }
     
+    // Dois iguais
     if (a === b || a === c || b === c) {
       return betAmount * 1.5;
     }
@@ -77,9 +87,11 @@ const SlotMachine = () => {
 
   const spinReels = () => {
     if (betAmount <= 0 || betAmount > balance) {
-      alert('Aposta invalida! Verifique o valor.');
+      alert('Aposta inválida! Verifique o valor.');
       return;
     }
+
+    if (isSpinning) return;
 
     setIsSpinning(true);
     setResult('');
@@ -98,7 +110,12 @@ const SlotMachine = () => {
     const spins = spinDuration / spinInterval;
     let currentSpin = 0;
 
-    const spinIntervalId = setInterval(() => {
+    // Limpar intervalo anterior se existir
+    if (spinIntervalRef.current) {
+      clearInterval(spinIntervalRef.current);
+    }
+
+    spinIntervalRef.current = setInterval(() => {
       const newReels = [
         getRandomSymbol().symbol,
         getRandomSymbol().symbol,
@@ -108,7 +125,7 @@ const SlotMachine = () => {
       currentSpin++;
 
       if (currentSpin >= spins) {
-        clearInterval(spinIntervalId);
+        clearInterval(spinIntervalRef.current);
         
         const finalReels = [
           getRandomSymbol().symbol,
@@ -127,13 +144,15 @@ const SlotMachine = () => {
             const finalBalance = newBalance + winnings;
             setBalance(finalBalance);
             setBalanceHistory(prev => [...prev, finalBalance]);
-            setResult(`Voce ganhou $${winnings}!`);
+            setResult(`Você ganhou $${winnings}! 🎉`);
           } else {
             setBalanceHistory(prev => [...prev, newBalance]);
             setResult('Tente novamente!');
             
             if (newBalance === 0) {
-              alert('Voce perdeu tudo! A casa sempre ganha.');
+              setTimeout(() => {
+                alert('Você perdeu tudo! A casa sempre ganha. 💸');
+              }, 500);
             }
           }
         }, 500);
@@ -143,14 +162,15 @@ const SlotMachine = () => {
 
   const BalanceChart = () => {
     const data = {
-      labels: Array.from(Array(betCount).keys()),
+      labels: balanceHistory.map((_, index) => `Jogada ${index}`),
       datasets: [
         {
-          label: 'Historico do Saldo',
+          label: 'Histórico do Saldo',
           data: balanceHistory,
           borderColor: 'rgba(75, 192, 192, 1)',
           backgroundColor: 'rgba(75, 192, 192, 0.2)',
           borderWidth: 2,
+          tension: 0.1,
         },
       ],
     };
@@ -163,7 +183,7 @@ const SlotMachine = () => {
         },
         title: {
           display: true,
-          text: 'Evolucao do Seu Saldo',
+          text: 'Evolução do Seu Saldo',
         },
       },
       scales: {
@@ -178,7 +198,7 @@ const SlotMachine = () => {
 
   const JackpotProbabilityChart = () => {
     const data = {
-      labels: Array.from(Array(jackpotProbabilityHistory.length).keys()),
+      labels: jackpotProbabilityHistory.map((_, index) => `Jogada ${index}`),
       datasets: [
         {
           label: 'Chance de Jackpot Acumulada',
@@ -199,7 +219,7 @@ const SlotMachine = () => {
         },
         title: {
           display: true,
-          text: 'Probabilidade de Jackpot por Numero de Jogadas',
+          text: 'Probabilidade de Jackpot por Número de Jogadas',
         },
         tooltip: {
           callbacks: {
@@ -226,13 +246,24 @@ const SlotMachine = () => {
         x: {
           title: {
             display: true,
-            text: 'Numero de Jogadas'
+            text: 'Número de Jogadas'
           }
         }
       }
     };
 
     return <Line data={data} options={options} />;
+  };
+
+  const resetGame = () => {
+    setBalance(1000);
+    setBetAmount(10);
+    setReels(['🍒', '🍒', '🍒']);
+    setResult('');
+    setBalanceHistory([1000]);
+    setBetCount(0);
+    setWinAmount(0);
+    setJackpotProbabilityHistory([0]);
   };
 
   return (
@@ -255,7 +286,7 @@ const SlotMachine = () => {
           
           <div className="slot-controls">
             <div className="betting-panel">
-              <h3>Faca sua aposta</h3>
+              <h3>Faça sua aposta</h3>
               <input
                 type="number"
                 placeholder="Valor da aposta"
@@ -263,14 +294,24 @@ const SlotMachine = () => {
                 onChange={(e) => setBetAmount(parseInt(e.target.value) || 0)}
                 min="1"
                 max={balance}
+                disabled={isSpinning}
               />
-              <button 
-                onClick={spinReels} 
-                disabled={isSpinning || betAmount <= 0}
-                className="spin-button"
-              >
-                {isSpinning ? 'Girando...' : 'GIRAR!'}
-              </button>
+              <div style={{ display: 'flex', gap: '10px', justifyContent: 'center' }}>
+                <button 
+                  onClick={spinReels} 
+                  disabled={isSpinning || betAmount <= 0 || betAmount > balance}
+                  className="spin-button"
+                >
+                  {isSpinning ? '🎰 Girando...' : '🎰 GIRAR!'}
+                </button>
+                <button 
+                  onClick={resetGame}
+                  className="spin-button"
+                  style={{ background: 'linear-gradient(145deg, #3498db, #2980b9)' }}
+                >
+                  🔄 Reiniciar
+                </button>
+              </div>
             </div>
             
             <div className="balance-info">
@@ -286,7 +327,7 @@ const SlotMachine = () => {
               </div>
             )}
 
-            <div className="probability-info">
+            <div className="probability-info" style={{ color: 'white', marginTop: '15px' }}>
               <h4>Chance de Jackpot: {calculateJackpotProbability(betCount).toFixed(2)}%</h4>
               <p>Após {betCount} jogadas</p>
             </div>
@@ -298,18 +339,13 @@ const SlotMachine = () => {
           <div className="probabilities-list">
             {symbols.map((sym, index) => (
               <div key={index} className="probability-item">
-                <span className="symbol">{sym.symbol}</span>
+                <span className="symbol">{sym.symbol} {sym.name}</span>
                 <span className="multiplier">{sym.multiplier}x</span>
                 <span className="probability">{(sym.probability * 100).toFixed(1)}%</span>
               </div>
             ))}
             <div className="probability-item">
-              <span className="symbol">3 CEREJAS</span>
-              <span className="multiplier">2x</span>
-              <span className="probability">6.4%</span>
-            </div>
-            <div className="probability-item">
-              <span className="symbol">DOIS IGUAIS</span>
+              <span className="symbol">🎰 DOIS IGUAIS</span>
               <span className="multiplier">1.5x</span>
               <span className="probability">~30%</span>
             </div>
@@ -319,7 +355,7 @@ const SlotMachine = () => {
 
       <div className="slot-chart-container">
         <div className="chart-section">
-          <h4>Evolucao do Saldo</h4>
+          <h4>Evolução do Saldo</h4>
           <BalanceChart />
         </div>
         
@@ -329,10 +365,10 @@ const SlotMachine = () => {
         </div>
         
         <div className="educational-note">
-          <h4>A Casa Sempre Ganha</h4>
+          <h4>📊 A Casa Sempre Ganha</h4>
           <p>
-            Mesmo com vitorias ocasionais, as probabilidades estao matematicamente 
-            a favor da casa. Quanto mais voce joga, maior a chance de perder tudo!
+            Mesmo com vitórias ocasionais, as probabilidades estão matematicamente 
+            a favor da casa. Quanto mais você joga, maior a chance de perder tudo!
           </p>
           <p>
             <strong>Probabilidade atual de jackpot:</strong> {calculateJackpotProbability(betCount).toFixed(2)}%
@@ -340,11 +376,13 @@ const SlotMachine = () => {
           <p>
             <strong>Valor esperado por aposta:</strong> -5% a -15%
           </p>
+          <p>
+            <strong>Dica:</strong> Use valores baixos para jogar mais tempo e ver as probabilidades em ação!
+          </p>
         </div>
       </div>
     </div>
   );
 };
-
 
 export default SlotMachine;
