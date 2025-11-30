@@ -590,9 +590,3 @@
 .probabilities-panel::-webkit-scrollbar-thumb:hover {
   background: #a8a8a8;
 }
-    width: 80px;
-    height: 80px;
-    font-size: 2rem;
-  }
-
-}
