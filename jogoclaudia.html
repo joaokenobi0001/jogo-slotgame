@@ -1,0 +1,924 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Cassino - A Ruína do Jogador</title>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        }
+        
+        body {
+            background: linear-gradient(135deg, #1a1a2e 0%, #16213e 100%);
+            color: #fff;
+            min-height: 100vh;
+            padding: 20px;
+        }
+        
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+        
+        header {
+            text-align: center;
+            margin-bottom: 30px;
+            padding-bottom: 20px;
+            border-bottom: 2px solid #0fce7c;
+        }
+        
+        h1 {
+            color: #0fce7c;
+            font-size: 2.8rem;
+            text-shadow: 0 0 10px rgba(15, 206, 124, 0.5);
+            margin-bottom: 10px;
+        }
+        
+        h2 {
+            color: #e6e6e6;
+            margin-bottom: 20px;
+            font-size: 1.8rem;
+        }
+        
+        h3 {
+            color: #0fce7c;
+            margin-bottom: 15px;
+            font-size: 1.4rem;
+        }
+        
+        .subtitle {
+            color: #aaa;
+            font-size: 1.1rem;
+            max-width: 800px;
+            margin: 0 auto 20px;
+            line-height: 1.5;
+        }
+        
+        .warning {
+            background-color: rgba(255, 165, 0, 0.2);
+            border-left: 4px solid #ffa500;
+            padding: 15px;
+            margin: 20px 0;
+            border-radius: 0 8px 8px 0;
+        }
+        
+        .game-container {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 30px;
+            margin-bottom: 30px;
+        }
+        
+        .panel {
+            background-color: rgba(30, 30, 46, 0.9);
+            border-radius: 15px;
+            padding: 25px;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.3);
+            border: 1px solid #333;
+            flex: 1;
+            min-width: 300px;
+        }
+        
+        .registration-panel {
+            flex: 1;
+        }
+        
+        .game-panel {
+            flex: 2;
+            min-width: 500px;
+        }
+        
+        .stats-panel {
+            flex: 1;
+        }
+        
+        .chart-container {
+            margin-top: 30px;
+            background-color: rgba(30, 30, 46, 0.9);
+            border-radius: 15px;
+            padding: 25px;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.3);
+            border: 1px solid #333;
+        }
+        
+        input, select, button {
+            padding: 12px 15px;
+            margin: 10px 0;
+            border-radius: 8px;
+            border: 1px solid #444;
+            width: 100%;
+            font-size: 1rem;
+            background-color: rgba(255, 255, 255, 0.1);
+            color: white;
+            transition: all 0.3s;
+        }
+        
+        input:focus, select:focus {
+            outline: none;
+            border-color: #0fce7c;
+            box-shadow: 0 0 0 2px rgba(15, 206, 124, 0.3);
+        }
+        
+        button {
+            background: linear-gradient(to right, #0fce7c, #0a9e5c);
+            color: white;
+            border: none;
+            font-weight: bold;
+            cursor: pointer;
+            margin-top: 15px;
+        }
+        
+        button:hover {
+            background: linear-gradient(to right, #0a9e5c, #0fce7c);
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(15, 206, 124, 0.4);
+        }
+        
+        button:disabled {
+            background: #555;
+            cursor: not-allowed;
+            transform: none;
+            box-shadow: none;
+        }
+        
+        button.secondary {
+            background: linear-gradient(to right, #6c757d, #5a6268);
+        }
+        
+        button.secondary:hover {
+            background: linear-gradient(to right, #5a6268, #6c757d);
+            box-shadow: 0 5px 15px rgba(108, 117, 125, 0.4);
+        }
+        
+        .player-info {
+            background-color: rgba(15, 206, 124, 0.1);
+            padding: 15px;
+            border-radius: 10px;
+            margin-bottom: 20px;
+            border: 1px solid rgba(15, 206, 124, 0.3);
+        }
+        
+        .player-info h3 {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        
+        .balance {
+            font-size: 1.8rem;
+            color: #0fce7c;
+            font-weight: bold;
+        }
+        
+        .bet-controls {
+            display: flex;
+            gap: 10px;
+            margin: 15px 0;
+        }
+        
+        .bet-controls button {
+            flex: 1;
+        }
+        
+        .bet-amount {
+            font-size: 1.5rem;
+            text-align: center;
+            margin: 15px 0;
+            color: #ffcc00;
+        }
+        
+        .game-result {
+            text-align: center;
+            padding: 20px;
+            border-radius: 10px;
+            margin: 20px 0;
+            font-size: 1.3rem;
+            font-weight: bold;
+            min-height: 80px;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            transition: all 0.5s;
+        }
+        
+        .win {
+            background-color: rgba(15, 206, 124, 0.2);
+            border: 2px solid #0fce7c;
+            color: #0fce7c;
+        }
+        
+        .loss {
+            background-color: rgba(220, 53, 69, 0.2);
+            border: 2px solid #dc3545;
+            color: #dc3545;
+        }
+        
+        .stats-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 15px;
+            margin-top: 20px;
+        }
+        
+        .stat-item {
+            background-color: rgba(255, 255, 255, 0.05);
+            padding: 15px;
+            border-radius: 8px;
+            text-align: center;
+        }
+        
+        .stat-value {
+            font-size: 1.8rem;
+            font-weight: bold;
+            color: #0fce7c;
+        }
+        
+        .stat-label {
+            font-size: 0.9rem;
+            color: #aaa;
+            margin-top: 5px;
+        }
+        
+        .probability-indicator {
+            height: 20px;
+            background-color: #333;
+            border-radius: 10px;
+            margin: 20px 0;
+            overflow: hidden;
+            position: relative;
+        }
+        
+        .probability-fill {
+            height: 100%;
+            background: linear-gradient(to right, #dc3545, #ffcc00, #0fce7c);
+            width: 50%;
+            transition: width 1s ease-in-out;
+        }
+        
+        .probability-text {
+            text-align: center;
+            font-size: 1.1rem;
+            margin-bottom: 10px;
+        }
+        
+        .history {
+            max-height: 200px;
+            overflow-y: auto;
+            margin-top: 15px;
+            padding: 10px;
+            background-color: rgba(0, 0, 0, 0.2);
+            border-radius: 8px;
+        }
+        
+        .history-item {
+            padding: 8px;
+            border-bottom: 1px solid #333;
+            display: flex;
+            justify-content: space-between;
+        }
+        
+        .history-item:last-child {
+            border-bottom: none;
+        }
+        
+        .win-text {
+            color: #0fce7c;
+        }
+        
+        .loss-text {
+            color: #dc3545;
+        }
+        
+        .hidden {
+            display: none;
+        }
+        
+        .instructions {
+            background-color: rgba(15, 206, 124, 0.1);
+            padding: 15px;
+            border-radius: 10px;
+            margin-top: 20px;
+            font-size: 0.9rem;
+            line-height: 1.5;
+        }
+        
+        footer {
+            text-align: center;
+            margin-top: 40px;
+            padding-top: 20px;
+            border-top: 1px solid #333;
+            color: #777;
+            font-size: 0.9rem;
+        }
+        
+        @media (max-width: 1100px) {
+            .game-container {
+                flex-direction: column;
+            }
+            
+            .panel {
+                min-width: 100%;
+            }
+        }
+        
+        @media (max-width: 768px) {
+            h1 {
+                font-size: 2rem;
+            }
+            
+            h2 {
+                font-size: 1.5rem;
+            }
+            
+            .game-panel {
+                min-width: 100%;
+            }
+            
+            .stats-grid {
+                grid-template-columns: 1fr;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <header>
+            <h1>Cassino - A Ruína do Jogador</h1>
+            <p class="subtitle">Um simulador que demonstra o conceito matemático da "Ruína do Jogador". Cadastre-se, faça apostas e observe como a probabilidade de perder todo seu dinheiro aumenta com o tempo.</p>
+            <div class="warning">
+                <strong>Atenção:</strong> Este é um simulador educacional para demonstração de conceitos matemáticos. Não envolve dinheiro real.
+            </div>
+        </header>
+        
+        <div class="game-container">
+            <!-- Painel de Cadastro -->
+            <div class="panel registration-panel" id="registrationPanel">
+                <h2>Cadastro do Jogador</h2>
+                <div id="registrationForm">
+                    <label for="playerName">Nome do Jogador:</label>
+                    <input type="text" id="playerName" placeholder="Digite seu nome" maxlength="20">
+                    
+                    <label for="initialBalance">Saldo Inicial:</label>
+                    <select id="initialBalance">
+                        <option value="100">R$ 100</option>
+                        <option value="200" selected>R$ 200</option>
+                        <option value="500">R$ 500</option>
+                        <option value="1000">R$ 1000</option>
+                    </select>
+                    
+                    <label for="betStrategy">Estratégia de Aposta:</label>
+                    <select id="betStrategy">
+                        <option value="conservative">Conservadora (aposta 5% do saldo)</option>
+                        <option value="moderate" selected>Moderada (aposta 10% do saldo)</option>
+                        <option value="aggressive">Agressiva (aposta 25% do saldo)</option>
+                        <option value="fixed">Valor Fixo (R$ 20 por aposta)</option>
+                    </select>
+                    
+                    <button id="registerBtn">Cadastrar e Começar a Jogar</button>
+                </div>
+                
+                <div class="player-info hidden" id="playerInfo">
+                    <h3>Jogador: <span id="displayName"></span> <button class="secondary" id="changePlayerBtn">Alterar</button></h3>
+                    <div class="balance">Saldo: R$ <span id="currentBalance">0</span></div>
+                    <div>Estratégia: <span id="displayStrategy"></span></div>
+                    <div>Total de Apostas: <span id="totalBets">0</span></div>
+                </div>
+                
+                <div class="instructions">
+                    <h4>Como funciona:</h4>
+                    <p>O jogo simula um cenário onde você tem 49.5% de chance de ganhar cada aposta. Conforme você continua apostando, a probabilidade de perder todo seu dinheiro aumenta - este é o conceito da "Ruína do Jogador".</p>
+                </div>
+            </div>
+            
+            <!-- Painel do Jogo -->
+            <div class="panel game-panel">
+                <h2>Jogo de Apostas</h2>
+                <div id="gameControls" class="hidden">
+                    <div class="bet-controls">
+                        <button id="decreaseBetBtn">-</button>
+                        <button id="increaseBetBtn">+</button>
+                    </div>
+                    
+                    <div class="bet-amount">
+                        Aposta: R$ <span id="betAmount">0</span>
+                    </div>
+                    
+                    <button id="placeBetBtn">FAZER APOSTA</button>
+                    
+                    <div class="game-result" id="gameResult">
+                        Faça sua primeira aposta!
+                    </div>
+                    
+                    <button id="autoPlayBtn" class="secondary">AUTO JOGAR (10 RODADAS)</button>
+                </div>
+                
+                <div id="gameDisabled">
+                    <div class="game-result">
+                        Complete o cadastro para começar a jogar
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Painel de Estatísticas -->
+            <div class="panel stats-panel">
+                <h2>Probabilidade de Ruína</h2>
+                <div class="probability-text">
+                    Chance de perder todo o saldo: <span id="ruinProbability">0%</span>
+                </div>
+                <div class="probability-indicator">
+                    <div class="probability-fill" id="probabilityFill"></div>
+                </div>
+                
+                <div class="stats-grid">
+                    <div class="stat-item">
+                        <div class="stat-value" id="winsCount">0</div>
+                        <div class="stat-label">Vitórias</div>
+                    </div>
+                    <div class="stat-item">
+                        <div class="stat-value" id="lossesCount">0</div>
+                        <div class="stat-label">Derrotas</div>
+                    </div>
+                    <div class="stat-item">
+                        <div class="stat-value" id="winRate">0%</div>
+                        <div class="stat-label">Taxa de Vitória</div>
+                    </div>
+                    <div class="stat-item">
+                        <div class="stat-value" id="currentStreak">0</div>
+                        <div class="stat-label">Sequência Atual</div>
+                    </div>
+                </div>
+                
+                <h3>Histórico de Apostas</h3>
+                <div class="history" id="betHistory">
+                    <!-- Histórico será preenchido dinamicamente -->
+                </div>
+            </div>
+        </div>
+        
+        <!-- Gráfico de Probabilidade -->
+        <div class="chart-container">
+            <h2>Probabilidade de Ruína ao Longo do Tempo</h2>
+            <canvas id="probabilityChart"></canvas>
+            <div class="instructions">
+                <p>Este gráfico mostra como a probabilidade de perder todo seu dinheiro aumenta com o número de apostas. Quanto mais você joga, maior a chance de ruína, mesmo com odds quase 50/50.</p>
+            </div>
+        </div>
+        
+        <footer>
+            <p>Jogo educativo desenvolvido para demonstração do conceito matemático "A Ruína do Jogador" | Para GitHub Pages</p>
+            <p>O jogo usa probabilidades fixas: 49.5% de ganhar, 50.5% de perder em cada rodada.</p>
+        </footer>
+    </div>
+
+    <script>
+        // Variáveis do jogo
+        let player = null;
+        let gameChart = null;
+        let betHistory = [];
+        let ruinProbabilityData = [];
+        let betAmount = 0;
+        
+        // Elementos do DOM
+        const registrationPanel = document.getElementById('registrationPanel');
+        const registrationForm = document.getElementById('registrationForm');
+        const playerInfo = document.getElementById('playerInfo');
+        const gameControls = document.getElementById('gameControls');
+        const gameDisabled = document.getElementById('gameDisabled');
+        const gameResult = document.getElementById('gameResult');
+        
+        // Elementos de cadastro
+        const registerBtn = document.getElementById('registerBtn');
+        const playerNameInput = document.getElementById('playerName');
+        const initialBalanceSelect = document.getElementById('initialBalance');
+        const betStrategySelect = document.getElementById('betStrategy');
+        const changePlayerBtn = document.getElementById('changePlayerBtn');
+        
+        // Elementos do jogo
+        const placeBetBtn = document.getElementById('placeBetBtn');
+        const autoPlayBtn = document.getElementById('autoPlayBtn');
+        const decreaseBetBtn = document.getElementById('decreaseBetBtn');
+        const increaseBetBtn = document.getElementById('increaseBetBtn');
+        
+        // Elementos de exibição
+        const displayName = document.getElementById('displayName');
+        const currentBalance = document.getElementById('currentBalance');
+        const displayStrategy = document.getElementById('displayStrategy');
+        const totalBets = document.getElementById('totalBets');
+        const betAmountDisplay = document.getElementById('betAmount');
+        const winsCount = document.getElementById('winsCount');
+        const lossesCount = document.getElementById('lossesCount');
+        const winRate = document.getElementById('winRate');
+        const currentStreak = document.getElementById('currentStreak');
+        const ruinProbability = document.getElementById('ruinProbability');
+        const probabilityFill = document.getElementById('probabilityFill');
+        const betHistoryElement = document.getElementById('betHistory');
+        
+        // Inicialização do gráfico
+        function initializeChart() {
+            const ctx = document.getElementById('probabilityChart').getContext('2d');
+            
+            // Destruir gráfico existente se houver
+            if (gameChart) {
+                gameChart.destroy();
+            }
+            
+            gameChart = new Chart(ctx, {
+                type: 'line',
+                data: {
+                    labels: [],
+                    datasets: [{
+                        label: 'Probabilidade de Ruína (%)',
+                        data: [],
+                        borderColor: '#dc3545',
+                        backgroundColor: 'rgba(220, 53, 69, 0.1)',
+                        borderWidth: 3,
+                        fill: true,
+                        tension: 0.4
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: {
+                        legend: {
+                            labels: {
+                                color: '#fff',
+                                font: {
+                                    size: 14
+                                }
+                            }
+                        },
+                        tooltip: {
+                            mode: 'index',
+                            intersect: false,
+                            backgroundColor: 'rgba(0, 0, 0, 0.7)',
+                            titleColor: '#fff',
+                            bodyColor: '#fff'
+                        }
+                    },
+                    scales: {
+                        x: {
+                            title: {
+                                display: true,
+                                text: 'Número de Apostas',
+                                color: '#aaa'
+                            },
+                            grid: {
+                                color: 'rgba(255, 255, 255, 0.1)'
+                            },
+                            ticks: {
+                                color: '#aaa'
+                            }
+                        },
+                        y: {
+                            title: {
+                                display: true,
+                                text: 'Probabilidade (%)',
+                                color: '#aaa'
+                            },
+                            min: 0,
+                            max: 100,
+                            grid: {
+                                color: 'rgba(255, 255, 255, 0.1)'
+                            },
+                            ticks: {
+                                color: '#aaa'
+                            }
+                        }
+                    }
+                }
+            });
+            
+            // Ajustar altura do gráfico
+            document.getElementById('probabilityChart').parentElement.style.height = '400px';
+        }
+        
+        // Cadastro do jogador
+        registerBtn.addEventListener('click', function() {
+            const name = playerNameInput.value.trim();
+            const balance = parseInt(initialBalanceSelect.value);
+            const strategy = betStrategySelect.value;
+            
+            if (!name) {
+                alert("Por favor, digite seu nome.");
+                playerNameInput.focus();
+                return;
+            }
+            
+            // Criar objeto do jogador
+            player = {
+                name: name,
+                balance: balance,
+                initialBalance: balance,
+                strategy: strategy,
+                wins: 0,
+                losses: 0,
+                totalBets: 0,
+                currentStreak: 0,
+                maxStreak: 0
+            };
+            
+            // Atualizar interface
+            displayName.textContent = player.name;
+            currentBalance.textContent = player.balance.toFixed(2);
+            totalBets.textContent = player.totalBets;
+            
+            // Definir estratégia de aposta
+            updateBetStrategy();
+            
+            // Mostrar informações do jogador e controles do jogo
+            registrationForm.classList.add('hidden');
+            playerInfo.classList.remove('hidden');
+            gameControls.classList.remove('hidden');
+            gameDisabled.classList.add('hidden');
+            
+            // Atualizar estatísticas iniciais
+            updateStatistics();
+            
+            // Reiniciar dados do gráfico
+            ruinProbabilityData = [];
+            updateChart();
+            
+            // Limpar histórico
+            betHistory = [];
+            updateBetHistory();
+        });
+        
+        // Alterar jogador
+        changePlayerBtn.addEventListener('click', function() {
+            player = null;
+            registrationForm.classList.remove('hidden');
+            playerInfo.classList.add('hidden');
+            gameControls.classList.add('hidden');
+            gameDisabled.classList.remove('hidden');
+            gameResult.textContent = "Complete o cadastro para começar a jogar";
+            gameResult.className = "game-result";
+        });
+        
+        // Atualizar estratégia de aposta
+        function updateBetStrategy() {
+            if (!player) return;
+            
+            let strategyText = "";
+            switch(player.strategy) {
+                case "conservative":
+                    betAmount = Math.max(1, Math.floor(player.balance * 0.05));
+                    strategyText = "Conservadora (5% do saldo)";
+                    break;
+                case "moderate":
+                    betAmount = Math.max(1, Math.floor(player.balance * 0.10));
+                    strategyText = "Moderada (10% do saldo)";
+                    break;
+                case "aggressive":
+                    betAmount = Math.max(1, Math.floor(player.balance * 0.25));
+                    strategyText = "Agressiva (25% do saldo)";
+                    break;
+                case "fixed":
+                    betAmount = 20;
+                    strategyText = "Valor Fixo (R$ 20)";
+                    break;
+            }
+            
+            // Garantir que a aposta não seja maior que o saldo
+            if (betAmount > player.balance) {
+                betAmount = Math.max(1, Math.floor(player.balance));
+            }
+            
+            displayStrategy.textContent = strategyText;
+            betAmountDisplay.textContent = betAmount.toFixed(2);
+        }
+        
+        // Controles de aposta
+        decreaseBetBtn.addEventListener('click', function() {
+            if (!player || betAmount <= 1) return;
+            
+            betAmount = Math.max(1, betAmount - 1);
+            betAmountDisplay.textContent = betAmount.toFixed(2);
+        });
+        
+        increaseBetBtn.addEventListener('click', function() {
+            if (!player || betAmount >= player.balance) return;
+            
+            betAmount = Math.min(player.balance, betAmount + 1);
+            betAmountDisplay.textContent = betAmount.toFixed(2);
+        });
+        
+        // Fazer uma aposta
+        placeBetBtn.addEventListener('click', function() {
+            if (!player || player.balance <= 0) return;
+            
+            // Verificar se a aposta é válida
+            if (betAmount > player.balance) {
+                alert("Você não tem saldo suficiente para esta aposta.");
+                updateBetStrategy(); // Recalcular aposta com base na estratégia
+                return;
+            }
+            
+            if (betAmount <= 0) {
+                alert("Valor de aposta inválido.");
+                return;
+            }
+            
+            // Realizar a aposta
+            const winChance = 0.495; // 49.5% de chance de ganhar
+            const isWin = Math.random() < winChance;
+            
+            // Atualizar saldo e estatísticas
+            if (isWin) {
+                player.balance += betAmount;
+                player.wins++;
+                player.currentStreak = player.currentStreak > 0 ? player.currentStreak + 1 : 1;
+                gameResult.textContent = `Você ganhou R$ ${betAmount.toFixed(2)}!`;
+                gameResult.className = "game-result win";
+            } else {
+                player.balance -= betAmount;
+                player.losses++;
+                player.currentStreak = player.currentStreak < 0 ? player.currentStreak - 1 : -1;
+                gameResult.textContent = `Você perdeu R$ ${betAmount.toFixed(2)}.`;
+                gameResult.className = "game-result loss";
+            }
+            
+            player.totalBets++;
+            
+            // Atualizar estatísticas
+            updateStatistics();
+            
+            // Registrar no histórico
+            betHistory.unshift({
+                betNumber: player.totalBets,
+                amount: betAmount,
+                result: isWin ? "win" : "loss",
+                balanceAfter: player.balance,
+                timestamp: new Date().toLocaleTimeString()
+            });
+            
+            // Manter apenas os últimos 10 registros no histórico visível
+            if (betHistory.length > 10) {
+                betHistory.pop();
+            }
+            
+            updateBetHistory();
+            
+            // Atualizar estratégia de aposta (pode ter mudado devido à alteração do saldo)
+            updateBetStrategy();
+            
+            // Calcular e atualizar probabilidade de ruína
+            updateRuinProbability();
+            
+            // Verificar se o jogador faliu
+            if (player.balance <= 0) {
+                gameResult.innerHTML = `<div>FALÊNCIA! Você perdeu todo seu dinheiro.</div><div>Total de apostas: ${player.totalBets}</div>`;
+                gameResult.className = "game-result loss";
+                placeBetBtn.disabled = true;
+                autoPlayBtn.disabled = true;
+            }
+        });
+        
+        // Modo de jogo automático
+        autoPlayBtn.addEventListener('click', function() {
+            if (!player || player.balance <= 0) return;
+            
+            // Desabilitar botões durante o jogo automático
+            placeBetBtn.disabled = true;
+            autoPlayBtn.disabled = true;
+            autoPlayBtn.textContent = "AUTOPLAY EM ANDAMENTO...";
+            
+            // Realizar 10 apostas automaticamente
+            let autoPlayCount = 0;
+            const maxAutoPlays = 10;
+            
+            const autoPlayInterval = setInterval(() => {
+                if (autoPlayCount >= maxAutoPlays || player.balance <= 0) {
+                    clearInterval(autoPlayInterval);
+                    placeBetBtn.disabled = false;
+                    autoPlayBtn.disabled = false;
+                    autoPlayBtn.textContent = "AUTO JOGAR (10 RODADAS)";
+                    return;
+                }
+                
+                // Fazer uma aposta
+                placeBetBtn.click();
+                autoPlayCount++;
+                
+            }, 800); // Intervalo de 800ms entre apostas
+        });
+        
+        // Atualizar estatísticas
+        function updateStatistics() {
+            if (!player) return;
+            
+            currentBalance.textContent = player.balance.toFixed(2);
+            totalBets.textContent = player.totalBets;
+            winsCount.textContent = player.wins;
+            lossesCount.textContent = player.losses;
+            
+            const totalGames = player.wins + player.losses;
+            const winRateValue = totalGames > 0 ? (player.wins / totalGames * 100).toFixed(1) : "0";
+            winRate.textContent = `${winRateValue}%`;
+            
+            currentStreak.textContent = player.currentStreak;
+            currentStreak.style.color = player.currentStreak > 0 ? "#0fce7c" : player.currentStreak < 0 ? "#dc3545" : "#aaa";
+        }
+        
+        // Atualizar histórico de apostas
+        function updateBetHistory() {
+            betHistoryElement.innerHTML = "";
+            
+            if (betHistory.length === 0) {
+                betHistoryElement.innerHTML = '<div class="history-item">Nenhuma aposta ainda</div>';
+                return;
+            }
+            
+            betHistory.forEach(bet => {
+                const historyItem = document.createElement('div');
+                historyItem.className = 'history-item';
+                
+                const resultClass = bet.result === "win" ? "win-text" : "loss-text";
+                const resultSymbol = bet.result === "win" ? "▲" : "▼";
+                
+                historyItem.innerHTML = `
+                    <div>Aposta #${bet.betNumber} <span class="${resultClass}">${resultSymbol} R$ ${bet.amount.toFixed(2)}</span></div>
+                    <div>R$ ${bet.balanceAfter.toFixed(2)}</div>
+                `;
+                
+                betHistoryElement.appendChild(historyItem);
+            });
+        }
+        
+        // Calcular e atualizar probabilidade de ruína
+        function updateRuinProbability() {
+            if (!player || player.totalBets === 0) {
+                ruinProbability.textContent = "0%";
+                probabilityFill.style.width = "0%";
+                return;
+            }
+            
+            // Fórmula simplificada para probabilidade de ruína
+            // Baseada no problema do jogador com vantagem para a casa
+            const winProbability = 0.495;
+            const lossProbability = 0.505;
+            const currentBalance = player.balance;
+            const initialBalance = player.initialBalance;
+            
+            // Para muitas apostas, a probabilidade de ruína se aproxima de 1 (100%)
+            // Usamos uma fórmula que aumenta com o número de apostas
+            let ruinProb = 0;
+            
+            if (lossProbability > winProbability) {
+                // Se a casa tem vantagem
+                const r = lossProbability / winProbability;
+                ruinProb = 1 - Math.pow(r, currentBalance) / Math.pow(r, initialBalance);
+            } else {
+                // Fórmula aproximada baseada no número de apostas
+                ruinProb = 1 - Math.pow(winProbability / lossProbability, player.totalBets / 10);
+            }
+            
+            // Limitar entre 0 e 1
+            ruinProb = Math.max(0, Math.min(1, ruinProb));
+            
+            // Converter para porcentagem
+            const ruinProbPercent = Math.round(ruinProb * 100);
+            
+            // Atualizar exibição
+            ruinProbability.textContent = `${ruinProbPercent}%`;
+            probabilityFill.style.width = `${ruinProbPercent}%`;
+            
+            // Adicionar ao gráfico
+            ruinProbabilityData.push(ruinProbPercent);
+            updateChart();
+        }
+        
+        // Atualizar gráfico
+        function updateChart() {
+            if (!gameChart) return;
+            
+            // Atualizar labels (números das apostas)
+            const labels = [];
+            for (let i = 1; i <= ruinProbabilityData.length; i++) {
+                labels.push(i);
+            }
+            
+            // Atualizar dados do gráfico
+            gameChart.data.labels = labels;
+            gameChart.data.datasets[0].data = ruinProbabilityData;
+            gameChart.update();
+        }
+        
+        // Inicializar gráfico quando a página carregar
+        window.addEventListener('load', function() {
+            initializeChart();
+            
+            // Pré-preenche o nome para facilitar a demonstração
+            const names = ["Alex", "Beatriz", "Carlos", "Daniela", "Eduardo", "Fernanda"];
+            const randomName = names[Math.floor(Math.random() * names.length)];
+            playerNameInput.value = randomName;
+        });
+    </script>
+</body>
+</html>
